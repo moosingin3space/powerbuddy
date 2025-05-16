@@ -1,0 +1,5 @@
+const machine = createLampMachine({
+  meraki_api: (params) => /* implementation */,
+  isAfterSunset: () => /* implementation */,
+  isLateNight: () => /* implementation */
+});
