@@ -22,4 +22,6 @@ export class LampDurableObject extends DurableObject {
    }
 
    // create stubs for a few events: 1) a webhook received, 2) a cron-triggered reconciliation, and 3) a manual override set. AI!
+   // - Do not use the CloudFlare API. Just write the function stubs. The calling worker will parse the ingress data and pass it
+   //   to the Durable Object in this file.
 }
