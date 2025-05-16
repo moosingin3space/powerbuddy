@@ -2,26 +2,46 @@ import { createLampMachine } from "./lamp_fsm.ts";
 import api from "./meraki_api.ts";
 import { DurableObject } from "cloudflare:workers";
 
+function isLateNight(): boolean {
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Los_Angeles',
+    hour: 'numeric',
+    hour12: false
+  });
+  const currentHour = parseInt(formatter.format(new Date()));
+  return currentHour >= 2 && currentHour < 8;
+}
+
 /** This class implements a lamp controlled with an MT40. */
 export class LampDurableObject extends DurableObject {
-  /**
-   * The constructor creates a new FSM, with appropriate backends.
-   */
-   constructor(ctx: DurableObjectState, env: Env) {
-     super(ctx, env);
+  #fsm: ReturnType<typeof createLampMachine>;
 
-     const mt40_api_call = ({power}: {power: boolean}) {
-       return api.set_mt40_power(env.MERAKI_API_KEY, env.LAMP_MT40_SERIAL, { power });
-     };
+  constructor(ctx: DurableObjectState, env: Env) {
+    super(ctx, env);
 
-     this.#fsm = createLampMachine({
-         meraki_api: mt40_api_call,
-         isAfterSunset: null,
-         isLateNight: null,
-     });
-   }
+    const mt40_api_call = ({ power }: { power: boolean }) => {
+      return api.set_mt40_power(env.MERAKI_API_KEY, env.LAMP_MT40_SERIAL, { power });
+    };
 
-   // create stubs for a few events: 1) a webhook received, 2) a cron-triggered reconciliation, and 3) a manual override set. AI!
-   // - Do not use the CloudFlare API. Just write the function stubs. The calling worker will parse the ingress data and pass it
-   //   to the Durable Object in this file.
+    this.#fsm = createLampMachine({
+      meraki_api: mt40_api_call,
+      isAfterSunset: () => { throw new Error('isAfterSunset not implemented') },
+      isLateNight
+    });
+  }
+
+  // Webhook event handler stub
+  handleWebhook(event: { type: string }) {
+    this.#fsm.send({ type: event.type });
+  }
+
+  // Cron-triggered reconciliation stub
+  reconcile() {
+    this.#fsm.send({ type: 'time_check' });
+  }
+
+  // Manual override control stub
+  setManualOverride(action: 'on' | 'off') {
+    this.#fsm.send({ type: `manual_override_${action}` });
+  }
 }
