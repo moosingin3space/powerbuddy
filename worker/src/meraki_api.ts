@@ -1,18 +1,13 @@
-import { setTimeout } from 'node:timers/promises'
-
-const MERAKI_API_KEY = process.env.MERAKI_API_KEY
-const MERAKI_DEVICE_SERIAL = process.env.MERAKI_DEVICE_SERIAL
-
-export async function meraki_api({ power }: { power: boolean }) {
-  if (!MERAKI_API_KEY || !MERAKI_DEVICE_SERIAL) {
-    throw new Error('Meraki API credentials not configured')
-  }
-
+async function set_mt40_power(
+  api_key: string,
+  mt40_serial: string,
+  { power }: { power: boolean },
+) {
   const operation = power ? 'enableDownstreamPower' : 'disableDownstreamPower'
   
   // Send command to Meraki API
   const commandResponse = await fetch(
-    `https://api.meraki.com/api/v1/devices/${MERAKI_DEVICE_SERIAL}/sensor/commands`,
+    `https://api.meraki.com/api/v1/devices/${mt40_serial}/sensor/commands`,
     {
       method: 'POST',
       headers: {
@@ -22,6 +17,8 @@ export async function meraki_api({ power }: { power: boolean }) {
       body: JSON.stringify({ operation })
     }
   )
+
+  // AI: refactor this code...
 
   if (!commandResponse.ok) {
     throw new Error(`Meraki API request failed: ${commandResponse.status}`)
@@ -83,4 +80,9 @@ export async function meraki_api({ power }: { power: boolean }) {
   if (currentPower !== power) {
     throw new Error(`Power state verification failed. Expected ${power}, got ${currentPower}`)
   }
+
+  // .. into another function that queries whether the power state is what it's intended to be. AI!
+  // - This function does not have to perform exponential backoff itself, for that is apparently doable
+  //   with the Cloudflare API itself. Do not use Cloudflare's API here. I'll do that myself in a surrounding
+  //   caller.
 }
