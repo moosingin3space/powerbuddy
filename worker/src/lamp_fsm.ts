@@ -4,6 +4,8 @@ import { setup } from "xstate";
  * This module defines the core state machine for a lamp.
  */
 
+// Take this definition and convert it into a function where the caller must provide
+// the `meraki_api`, `isAfterSunset`, and `isLateNight` functions as paramters. AI!
 export const machine = setup({
   types: {
     context: {} as {},
