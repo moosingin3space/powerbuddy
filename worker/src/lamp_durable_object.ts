@@ -2,8 +2,6 @@ import { createLampMachine } from "./lamp_fsm.ts";
 import api from "./meraki_api.ts";
 import { DurableObject } from "cloudflare:workers";
 
-// implement a function called isLateNight that returns true between the hours of 2am-8am in Pacific Time. AI!
-
 /** This class implements a lamp controlled with an MT40. */
 export class LampDurableObject extends DurableObject {
   /**
@@ -16,8 +14,12 @@ export class LampDurableObject extends DurableObject {
        return api.set_mt40_power(env.MERAKI_API_KEY, env.LAMP_MT40_SERIAL, { power });
      };
 
-     this.#fsm = createLampMachine(
-       mt40_api_call,
-     );
+     this.#fsm = createLampMachine({
+         meraki_api: mt40_api_call,
+         isAfterSunset: null,
+         isLateNight: null,
+     });
    }
+
+   // create stubs for a few events: 1) a webhook received, 2) a cron-triggered reconciliation, and 3) a manual override set. AI!
 }
