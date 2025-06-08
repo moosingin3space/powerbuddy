@@ -7,14 +7,6 @@
 	"name": "powerbuddy",
 	"main": "src/index.ts",
 	"compatibility_date": "2025-05-15",
-	"migrations": [
-		{
-			"new_sqlite_classes": [
-				"MyDurableObject"
-			],
-			"tag": "v1"
-		}
-	],
 	"assets": {
 		"binding": "ASSETS",
 		"directory": "./public"
@@ -22,8 +14,8 @@
 	"durable_objects": {
 		"bindings": [
 			{
-				"class_name": "MyDurableObject",
-				"name": "MY_DURABLE_OBJECT"
+				"class_name": "LampDurableObject",
+				"name": "LAMP"
 			}
 		]
 	},

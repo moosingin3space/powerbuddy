@@ -1,10 +1,15 @@
 import { createLampMachine } from "./lamp_fsm.ts";
 import api from "./meraki_api.ts";
 import { DurableObject } from "cloudflare:workers";
+import { Temporal, Intl, toTemporalInstant } from "@js-temporal/polyfill"
+Date.prototype.toTemporalInstant = toTemporalInstant;
 
 function isLateNight(): boolean {
-  // TODO
-  throw new Error('isLateNight not implemented');
+  const now = Date.now()
+    .toTemporalInstant()
+    .toZonedDateTime();
+
+    return (now.hour < 2 || now.hour > 22);
 }
 
 /** This class implements a lamp controlled with an MT40. */

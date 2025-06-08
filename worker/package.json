@@ -13,6 +13,7 @@
 		"wrangler": "^4.15.2"
 	},
 	"dependencies": {
+		"@js-temporal/polyfill": "^0.5.1",
 		"xstate": "^5.19.3"
 	}
 }
