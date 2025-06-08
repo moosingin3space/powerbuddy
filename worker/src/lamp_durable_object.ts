@@ -3,13 +3,8 @@ import api from "./meraki_api.ts";
 import { DurableObject } from "cloudflare:workers";
 
 function isLateNight(): boolean {
-  const formatter = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'America/Los_Angeles',
-    hour: 'numeric',
-    hour12: false
-  });
-  const currentHour = parseInt(formatter.format(new Date()));
-  return currentHour >= 2 && currentHour < 8;
+  // TODO
+  throw new Error('isLateNight not implemented');
 }
 
 /** This class implements a lamp controlled with an MT40. */
@@ -32,12 +27,12 @@ export class LampDurableObject extends DurableObject {
 
   // Webhook event handler stub
   handleWebhook(event: { type: string }) {
-    this.#fsm.send({ type: event.type });
+    // TODO
   }
 
   // Cron-triggered reconciliation stub
   reconcile() {
-    this.#fsm.send({ type: 'time_check' });
+    // TODO
   }
 
   // Manual override control stub

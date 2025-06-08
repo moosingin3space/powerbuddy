@@ -47,24 +47,3 @@ async function check_mt40_power_state(
     throw new Error(`Power state verification failed. Expected ${expectedPower}, got ${currentPower}`)
   }
 }
-
-export async function meraki_api({ power }: { power: boolean }) {
-  if (!process.env.MERAKI_API_KEY || !process.env.MERAKI_DEVICE_SERIAL) {
-    throw new Error('Meraki API credentials not configured')
-  }
-
-  const commandId = await set_mt40_power(
-    process.env.MERAKI_API_KEY,
-    process.env.MERAKI_DEVICE_SERIAL,
-    { power }
-  )
-  
-  return {
-    commandId,
-    verify: () => check_mt40_power_state(
-      process.env.MERAKI_API_KEY!,
-      process.env.MERAKI_DEVICE_SERIAL!,
-      power
-    )
-  }
-}
