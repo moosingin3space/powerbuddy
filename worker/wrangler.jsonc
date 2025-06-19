@@ -7,21 +7,42 @@
 	"name": "powerbuddy",
 	"main": "src/index.ts",
 	"compatibility_date": "2025-05-15",
+	"migrations": [
+		{
+			"tag": "v1",
+			"new_classes": ["MyDurableObject"],
+		},
+		{
+			"tag": "v2",
+			"renamed_classes": [
+				{
+					"from": "MyDurableObject",
+					"to": "LampDurableObject",
+				},
+			],
+		},
+	],
 	"assets": {
 		"binding": "ASSETS",
-		"directory": "./public"
+		"directory": "./public",
 	},
 	"durable_objects": {
 		"bindings": [
 			{
 				"class_name": "LampDurableObject",
-				"name": "LAMP"
-			}
-		]
+				"name": "LAMP",
+			},
+		],
 	},
 	"observability": {
-		"enabled": true
-	}
+		"enabled": true,
+	},
+	"routes": [
+		{
+			"pattern": "powerbuddy.mooshq.xyz/*",
+			"zone_name": "mooshq.xyz",
+		},
+	],
 	/**
 	 * Smart Placement
 	 * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
@@ -39,7 +60,10 @@
 	 * Environment Variables
 	 * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
 	 */
-	// "vars": { "MY_VARIABLE": "production_value" },
+	"vars": {
+		"INTERESTED_CLIENTS": ["asimov", "bazzite", "bluefin", "Android_CBT1NIVD"],
+		"MY_TIMEZONE": "America/Los_Angeles",
+	},
 	/**
 	 * Note: Use secrets to store sensitive data.
 	 * https://developers.cloudflare.com/workers/configuration/secrets/
