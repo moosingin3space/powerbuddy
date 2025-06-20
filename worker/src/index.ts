@@ -1,4 +1,3 @@
-import { DurableObject } from 'cloudflare:workers';
 import { LampDurableObject } from './lamp_durable_object.ts';
 import { z } from 'zod';
 
@@ -63,6 +62,10 @@ export default {
 			return await webhook(request, livingRoomLamp, env);
 		}
 
+		if (request.method !== 'POST') {
+			return new Response(null, { status: 405 });
+		}
+
 		return new Response(null, { status: 404 });
 	},
 
@@ -70,6 +73,6 @@ export default {
 		const id = env.LAMP.idFromName('living_room');
 		const livingRoomLamp = env.LAMP.get(id);
 
-		await livingRoomLamp.reconcile();
+		ctx.waitUntil(livingRoomLamp.reconcile());
 	},
 } satisfies ExportedHandler<Env>;
