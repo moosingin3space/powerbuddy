@@ -4,12 +4,6 @@ import { z } from 'zod';
 
 export { LampDurableObject };
 
-/*export interface Env {
-	LAMP: DurableObjectNamespace<LampDurableObject>;
-	INTERESTED_CLIENTS: string[];
-	MERAKI_SHARED_SECRET: string;
-}*/
-
 // Zod schema for the webhook request body, focusing on interested fields and sharedSecret
 const webhookSchema = z.object({
 	sharedSecret: z.string(),
