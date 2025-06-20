@@ -43,6 +43,12 @@
 			"zone_name": "mooshq.xyz",
 		},
 	],
+	"triggers": {
+		"crons": [
+			/* Between the hours of 15:00-03:00 Pacific Time */
+			"*/5 22-23,0-9 * * *",
+		],
+	},
 	/**
 	 * Smart Placement
 	 * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
