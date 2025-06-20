@@ -65,4 +65,11 @@ export default {
 
 		return new Response(null, { status: 404 });
 	},
+
+	async scheduled(controller, env, ctx) {
+		const id = env.LAMP.idFromName('living_room');
+		const livingRoomLamp = env.LAMP.get(id);
+
+		await livingRoomLamp.reconcile();
+	},
 } satisfies ExportedHandler<Env>;
