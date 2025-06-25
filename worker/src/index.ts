@@ -59,11 +59,11 @@ export default {
 		const hookPattern = new URLPattern({ pathname: '/hook' });
 
 		if (hookPattern.test(request.url)) {
+			if (request.method !== 'POST') {
+				// 405 if not POST.
+				return new Response(null, { status: 405 });
+			}
 			return await webhook(request, livingRoomLamp, env);
-		}
-
-		if (request.method !== 'POST') {
-			return new Response(null, { status: 405 });
 		}
 
 		return new Response(null, { status: 404 });
