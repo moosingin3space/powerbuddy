@@ -2,19 +2,33 @@
 	"name": "powerbuddy",
 	"version": "0.0.0",
 	"private": true,
+	"type": "module",
 	"scripts": {
 		"deploy": "wrangler deploy",
 		"dev": "wrangler dev",
 		"start": "wrangler dev",
-		"cf-typegen": "wrangler types --strict-vars=false"
+		"cf-typegen": "wrangler types --strict-vars=false",
+		"test": "vitest"
 	},
 	"devDependencies": {
+		"@cloudflare/vitest-pool-workers": "^0.8.46",
+		"@vitest/runner": "^3.2.4",
+		"@vitest/snapshot": "^3.2.4",
 		"typescript": "^5.5.2",
+		"vitest": "~3.2.0",
 		"wrangler": "^4.15.2"
 	},
 	"dependencies": {
 		"@js-temporal/polyfill": "^0.5.1",
 		"xstate": "^5.19.3",
 		"zod": "^3.25.67"
+	},
+	"dependenciesMeta": {
+		"@cloudflare/vitest-pool-workers@0.8.46": {
+			"unplugged": true
+		},
+		"vitest@3.2.4": {
+			"unplugged": true
+		}
 	}
 }
