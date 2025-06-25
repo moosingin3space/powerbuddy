@@ -5,15 +5,15 @@
 
 version: 2
 updates:
-  - package-ecosystem: "npm" # See documentation for possible values
-    directory: "/worker" # Location of package manifests
+  - package-ecosystem: "npm"
+    directory: "/worker"
     schedule:
       interval: "weekly"
- - package-ecosystem: "gomod" # See documentation for possible values
-   directory: "/.dagger" # Location of package manifests
-   schedule:
+  - package-ecosystem: "gomod"
+    directory: "/.dagger"
+    schedule:
       interval: "weekly"
- - package-ecosystem: "gomod" # See documentation for possible values
-   directory: "/.github/workflows" # Location of package manifests
-   schedule:
-     interval: "weekly"
+  - package-ecosystem: "github-actions"
+    directory: "/.github/workflows"
+    schedule:
+      interval: "weekly"
