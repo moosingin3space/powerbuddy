@@ -21,7 +21,7 @@
 	"dependencies": {
 		"@js-temporal/polyfill": "^0.5.1",
 		"xstate": "^5.20.1",
-		"zod": "^3.25.67"
+		"zod": "^4.0.5"
 	},
 	"dependenciesMeta": {
 		"@cloudflare/vitest-pool-workers@0.8.46": {
