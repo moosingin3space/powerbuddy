@@ -46,6 +46,10 @@ describe('The webhook', () => {
 			body: {
 				sharedSecret: 'invalid secret',
 				alertTypeId: 'client_connectivity',
+				alertData: {
+					clientName: 'blah',
+					connected: 'true',
+				},
 			},
 		});
 		expect(response.status).toBe(403);
