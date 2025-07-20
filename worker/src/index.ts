@@ -36,14 +36,13 @@ async function webhook(request: Request, livingRoomLamp: DurableObjectStub<LampD
 			return new Response(null, { status: 400 });
 		}
 
-		if (data.alertTypeId === 'client_connectivity') {
-			return await handleClientConnectivityUpdate(data.alertData, livingRoomLamp, env);
-		} else if (data.alertTypeId === 'sensor_alert') {
-			// TODO implement sensor alert
-			return new Response('Not implemented yet', { status: 500 });
+		switch (data.alertTypeId) {
+			case 'client_connectivity':
+				return await handleClientConnectivityUpdate(data.alertData, livingRoomLamp, env);
+			case 'sensor_alert':
+				// TODO implement sensor alert
+				return new Response('Not implemented yet', { status: 500 });
 		}
-
-		return new Response(`No alert handler for ${data.alertTypeId}`, { status: 404 });
 	} catch {
 		// Return 404 NOT FOUND if the webhook is improperly formed.
 		return new Response(null, { status: 404 });
