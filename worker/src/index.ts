@@ -3,15 +3,16 @@ import { z } from 'zod';
 
 export { LampDurableObject };
 
+const clientConnectivitySchema = z.object({
+	clientName: z.string(),
+	connected: z.string(),
+});
+
 // Zod schema for the webhook request body, focusing on interested fields and sharedSecret
 const webhookSchema = z.object({
 	sharedSecret: z.string(),
-	alertData: z
-		.object({
-			clientName: z.string().optional(),
-			connected: z.string().optional(),
-		})
-		.optional(),
+	alertData: clientConnectivitySchema.optional(),
+	alertTypeId: z.enum(['client_connectivity', 'sensor_alert']),
 });
 
 // The handler function for a Meraki Dashboard webhook
@@ -31,24 +32,43 @@ async function webhook(request: Request, livingRoomLamp: DurableObjectStub<LampD
 			return new Response('Forbidden', { status: 403 });
 		}
 
-		// Load clients of interest from environment variable (already parsed as string array)
-		const interestedClients = new Set(env.INTERESTED_CLIENTS || []);
-
-		// Extract client name and connected state from the webhook payload
-		const clientName = data.alertData?.clientName;
-		const connectedStr = data.alertData?.connected;
-		const connected = connectedStr === 'true';
-
-		if (clientName && interestedClients.has(clientName)) {
-			// Forward connected state to durable object via RPC method call
-			await livingRoomLamp.myDeviceDetected(connected);
+		if (!data.alertData) {
+			return new Response(null, { status: 400 });
 		}
 
-		return new Response(null, { status: 200 });
+		if (data.alertTypeId === 'client_connectivity') {
+			return await handleClientConnectivityUpdate(data.alertData, livingRoomLamp, env);
+		} else if (data.alertTypeId === 'sensor_alert') {
+			// TODO implement sensor alert
+			return new Response('Not implemented yet', { status: 500 });
+		}
+
+		return new Response(`No alert handler for ${data.alertTypeId}`, { status: 404 });
 	} catch {
 		// Return 404 NOT FOUND if the webhook is improperly formed.
 		return new Response(null, { status: 404 });
 	}
+}
+
+async function handleClientConnectivityUpdate(
+	alertData: z.infer<typeof clientConnectivitySchema>,
+	livingRoomLamp: DurableObjectStub<LampDurableObject>,
+	env: Env,
+) {
+	// Load clients of interest from environment variable (already parsed as string array)
+	const interestedClients = new Set(env.INTERESTED_CLIENTS || []);
+
+	// Extract client name and connected state from the webhook payload
+	const clientName = alertData.clientName;
+	const connectedStr = alertData.connected;
+	const connected = connectedStr === 'true';
+
+	if (clientName && interestedClients.has(clientName)) {
+		// Forward connected state to durable object via RPC method call
+		await livingRoomLamp.myDeviceDetected(connected);
+	}
+
+	return new Response(null, { status: 200 });
 }
 
 export default {
