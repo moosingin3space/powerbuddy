@@ -55,8 +55,7 @@ async function webhook(request: Request, livingRoomLamp: DurableObjectStub<LampD
 			case 'client_connectivity':
 				return await handleClientConnectivityUpdate(data.alertData, livingRoomLamp, env);
 			case 'sensor_alert':
-				// TODO implement sensor alert
-				return new Response('Not implemented yet', { status: 500 });
+				return await handleSensorAlertUpdate(data.alertData, livingRoomLamp);
 		}
 	} catch {
 		// Return 404 NOT FOUND if the webhook is improperly formed.
@@ -68,19 +67,32 @@ async function handleClientConnectivityUpdate(
 	alertData: z.infer<typeof clientConnectivitySchema>,
 	livingRoomLamp: DurableObjectStub<LampDurableObject>,
 	env: Env,
-) {
+): Promise<Response> {
 	// Load clients of interest from environment variable (already parsed as string array)
 	const interestedClients = new Set(env.INTERESTED_CLIENTS || []);
 
 	// Extract client name and connected state from the webhook payload
-	const clientName = alertData.clientName;
-	const connectedStr = alertData.connected;
-	const connected = connectedStr === 'true';
+	const connected = alertData.connected === 'true';
 
-	if (clientName && interestedClients.has(clientName)) {
+	if (interestedClients.has(alertData.clientName)) {
 		// Forward connected state to durable object via RPC method call
 		await livingRoomLamp.myDeviceDetected(connected);
 	}
+
+	return new Response(null, { status: 200 });
+}
+
+async function handleSensorAlertUpdate(
+	alertData: z.infer<typeof sensorAlertSchema>,
+	livingRoomLamp: DurableObjectStub<LampDurableObject>,
+): Promise<Response> {
+	// Error handling: return 400 if triggerData is missing or empty
+	if (!alertData.triggerData || alertData.triggerData.length === 0) {
+		return new Response('Missing triggerData', { status: 400 });
+	}
+	const doorOpen = alertData.triggerData[0].trigger.sensorValue === 1;
+
+	await livingRoomLamp.doorSignal(doorOpen);
 
 	return new Response(null, { status: 200 });
 }
