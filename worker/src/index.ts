@@ -8,12 +8,31 @@ const clientConnectivitySchema = z.object({
 	connected: z.string(),
 });
 
-// Zod schema for the webhook request body, focusing on interested fields and sharedSecret
-const webhookSchema = z.object({
-	sharedSecret: z.string(),
-	alertData: clientConnectivitySchema.optional(),
-	alertTypeId: z.enum(['client_connectivity', 'sensor_alert']),
+const sensorAlertSchema = z.object({
+	alertConfigName: z.string(),
+	triggerData: z.array(
+		z.object({
+			trigger: z.object({
+				type: z.literal('door'),
+				sensorValue: z.int(),
+			}),
+		}),
+	),
 });
+
+// Zod schema for the webhook request body using discriminated union on alertTypeId
+const webhookSchema = z.discriminatedUnion('alertTypeId', [
+	z.object({
+		sharedSecret: z.string(),
+		alertTypeId: z.literal('client_connectivity'),
+		alertData: clientConnectivitySchema,
+	}),
+	z.object({
+		sharedSecret: z.string(),
+		alertTypeId: z.literal('sensor_alert'),
+		alertData: sensorAlertSchema,
+	}),
+]);
 
 // The handler function for a Meraki Dashboard webhook
 async function webhook(request: Request, livingRoomLamp: DurableObjectStub<LampDurableObject>, env: Env): Promise<Response> {
@@ -30,10 +49,6 @@ async function webhook(request: Request, livingRoomLamp: DurableObjectStub<LampD
 		// Check shared secret
 		if (data.sharedSecret !== env.MERAKI_SHARED_SECRET) {
 			return new Response('Forbidden', { status: 403 });
-		}
-
-		if (!data.alertData) {
-			return new Response(null, { status: 400 });
 		}
 
 		switch (data.alertTypeId) {
