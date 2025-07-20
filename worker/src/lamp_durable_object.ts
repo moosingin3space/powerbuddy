@@ -67,6 +67,10 @@ export class LampDurableObject extends DurableObject {
 		// TODO
 	}
 
+	doorSignal(door: boolean) {
+		// TODO
+	}
+
 	// Cron-triggered reconciliation stub
 	reconcile() {
 		// TODO
