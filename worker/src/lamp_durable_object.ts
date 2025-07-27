@@ -1,6 +1,7 @@
 import { type ActorRefFrom, createActor, SnapshotFrom } from 'xstate';
 import { createLampMachine } from './lamp_fsm.ts';
 import * as api from './meraki_api.ts';
+import * as nws_api from './weather_api.ts';
 import { DurableObject } from 'cloudflare:workers';
 import { Temporal, Intl } from '@js-temporal/polyfill';
 
@@ -12,9 +13,15 @@ function isLateNight(env: Env): boolean {
 
 type LampMachine = ReturnType<typeof createLampMachine>;
 
+interface PersistedSunset {
+	forecast: nws_api.SunsetHours;
+	queryTime: Temporal.Instant;
+}
+
 /** This class implements a lamp controlled with an MT40. */
 export class LampDurableObject extends DurableObject {
 	#fsm: ActorRefFrom<LampMachine> | null = null;
+	#sunsetHours: PersistedSunset | null = null;
 
 	constructor(ctx: DurableObjectState, env: Env) {
 		super(ctx, env);
@@ -26,13 +33,18 @@ export class LampDurableObject extends DurableObject {
 		const machine = createLampMachine({
 			meraki_api: mt40_api_call,
 			isAfterSunset: () => {
-				throw new Error('isAfterSunset not implemented');
+				const now = Temporal.Now.instant();
+				if (this.#sunsetHours) {
+					return Temporal.Instant.compare(this.#sunsetHours.forecast.sundownTime, now) > 0;
+				}
+				return false;
 			},
 			isLateNight: () => isLateNight(env),
 		});
 
 		ctx.blockConcurrencyWhile(async () => {
 			await this.restoreOrCreate(machine);
+			await this.getWeatherData();
 		});
 	}
 
@@ -61,6 +73,38 @@ export class LampDurableObject extends DurableObject {
 		}
 		this.#fsm.start();
 		this.subscribeToSnapshot();
+	}
+
+	async getWeatherData() {
+		if (this.#sunsetHours) {
+			throw new Error('sunsetHours already initialized');
+		}
+
+		const now = Temporal.Now.instant();
+		const saved = await this.ctx.storage.get<PersistedSunset>('most_recent_sunsets');
+		let shouldQueryAgain;
+		if (saved) {
+			// It's too old if the forecast age exceeds 2 hours.
+			const hoursElapsed = now.since(saved.queryTime).total({ unit: 'hours' });
+			const tooOld = hoursElapsed > 2;
+			if (tooOld) {
+				shouldQueryAgain = true;
+			} else {
+				shouldQueryAgain = false;
+			}
+		}
+
+		if (shouldQueryAgain || !saved) {
+			const result = await nws_api.retrieveSunsetHours(this.env.LATITUDE, this.env.LONGITUDE);
+			const persistedSunset = {
+				queryTime: now,
+				forecast: result,
+			};
+			this.ctx.storage.put('most_recent_sunsets', persistedSunset);
+			this.#sunsetHours = persistedSunset;
+		} else {
+			this.#sunsetHours = saved;
+		}
 	}
 
 	myDeviceDetected(connected: boolean) {
