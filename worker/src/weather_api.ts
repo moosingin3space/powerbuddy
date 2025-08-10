@@ -48,6 +48,7 @@ export async function retrieveSunsetHours(lat: string, lon: string): Promise<Sun
 		throw new Error('No sunset period found in forecast data');
 	}
 
+	console.log('Fetched sunset period for today', sunsetPeriod);
 	const sundownTime = Temporal.Instant.from(sunsetPeriod.endTime);
 
 	return { sundownTime };
