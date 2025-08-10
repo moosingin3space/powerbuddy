@@ -21,9 +21,10 @@ export function createLampMachine({
 				| { type: 'quiet' }
 				| { type: 'time_check' }
 				| { type: 'arrive' }
-				| { type: 'loud' }
 				| { type: 'manual_override_off' }
-				| { type: 'manual_override_on' },
+				| { type: 'manual_override_on' }
+				| { type: 'door_open' }
+				| { type: 'door_close' },
 		},
 		actions: {
 			meraki_api: (_, params) => meraki_api(params),
@@ -51,18 +52,6 @@ export function createLampMachine({
 							type: 'isAfterSunset',
 						},
 					},
-					loud: {
-						target: 'On',
-						actions: {
-							type: 'meraki_api',
-							params: {
-								power: false,
-							},
-						},
-						guard: {
-							type: 'isAfterSunset',
-						},
-					},
 					manual_override_on: {
 						target: 'On',
 						actions: {
@@ -70,6 +59,18 @@ export function createLampMachine({
 							params: {
 								power: true,
 							},
+						},
+					},
+					door_open: {
+						target: 'On',
+						actions: {
+							type: 'meraki_api',
+							params: {
+								power: true,
+							},
+						},
+						guard: {
+							type: 'isAfterSunset',
 						},
 					},
 				},
@@ -113,6 +114,15 @@ export function createLampMachine({
 						},
 						guard: {
 							type: 'isLateNight',
+						},
+					},
+					door_close: {
+						target: 'Off',
+						actions: {
+							type: 'meraki_api',
+							params: {
+								power: false,
+							},
 						},
 					},
 				},
