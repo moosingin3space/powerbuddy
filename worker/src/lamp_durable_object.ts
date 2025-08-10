@@ -108,16 +108,27 @@ export class LampDurableObject extends DurableObject<Env> {
 	}
 
 	myDeviceDetected(connected: boolean) {
-		// TODO
+		if (this.#fsm) {
+			if (connected) {
+				// We arrived
+				this.#fsm.send({ type: 'arrive' });
+			} else {
+				this.#fsm.send({ type: 'leave' });
+			}
+		}
 	}
 
 	doorSignal(door: boolean) {
-		// TODO
+		if (this.#fsm) {
+			this.#fsm.send({ type: door ? 'door_open' : 'door_close' });
+		}
 	}
 
 	// Cron-triggered reconciliation stub
 	reconcile() {
-		// TODO
+		if (this.#fsm) {
+			this.#fsm.send({ type: 'time_check' });
+		}
 	}
 
 	// Manual override control stub
