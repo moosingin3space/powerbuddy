@@ -19,7 +19,7 @@ interface PersistedSunset {
 }
 
 /** This class implements a lamp controlled with an MT40. */
-export class LampDurableObject extends DurableObject {
+export class LampDurableObject extends DurableObject<Env> {
 	#fsm: ActorRefFrom<LampMachine> | null = null;
 	#sunsetHours: PersistedSunset | null = null;
 
