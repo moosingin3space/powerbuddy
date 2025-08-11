@@ -25,6 +25,7 @@ export class LampDurableObject extends DurableObject<Env> {
 
 	constructor(ctx: DurableObjectState, env: Env) {
 		super(ctx, env);
+		console.debug('[LampDurableObject] constructor start');
 
 		const mt40_api_call = ({ power }: { power: boolean }) => {
 			return api.set_mt40_power(env.MERAKI_API_KEY, env.LAMP_MT40_SERIAL, { power });
@@ -51,6 +52,7 @@ export class LampDurableObject extends DurableObject<Env> {
 	// Sets up a subscription for this finite state machine,
 	// which will persist the state to storage whenever it changes.
 	subscribeToSnapshot() {
+		console.debug('[LampDurableObject] subscribeToSnapshot start');
 		if (!this.#fsm) {
 			throw new Error('FSM not initialized');
 		}
@@ -61,6 +63,7 @@ export class LampDurableObject extends DurableObject<Env> {
 	}
 
 	async restoreOrCreate(machine: LampMachine) {
+		console.debug('[LampDurableObject] restoreOrCreate start');
 		if (this.#fsm) {
 			throw new Error('actor already initialized');
 		}
@@ -76,12 +79,19 @@ export class LampDurableObject extends DurableObject<Env> {
 	}
 
 	async getWeatherData() {
+		console.debug('[LampDurableObject] getWeatherData start');
 		if (this.#sunsetHours) {
 			throw new Error('sunsetHours already initialized');
 		}
 
 		const now = Temporal.Now.instant();
-		const saved = await this.ctx.storage.get<PersistedSunset>('most_recent_sunsets');
+		let saved;
+		try {
+			saved = await this.ctx.storage.get<PersistedSunset>('most_recent_sunsets');
+		} catch (error) {
+			console.error('Error fetching persisted sunset data:', error);
+			saved = null;
+		}
 		let shouldQueryAgain;
 		if (saved) {
 			// It's too old if the forecast age exceeds 2 hours.
@@ -108,6 +118,7 @@ export class LampDurableObject extends DurableObject<Env> {
 	}
 
 	myDeviceDetected(connected: boolean) {
+		console.debug('[LampDurableObject] myDeviceDetected start', { connected });
 		if (this.#fsm) {
 			if (connected) {
 				// We arrived
@@ -119,6 +130,7 @@ export class LampDurableObject extends DurableObject<Env> {
 	}
 
 	doorSignal(door: boolean) {
+		console.debug('[LampDurableObject] doorSignal start', { door });
 		if (this.#fsm) {
 			this.#fsm.send({ type: door ? 'door_open' : 'door_close' });
 		}
@@ -126,6 +138,7 @@ export class LampDurableObject extends DurableObject<Env> {
 
 	// Cron-triggered reconciliation stub
 	reconcile() {
+		console.debug('[LampDurableObject] reconcile start');
 		if (this.#fsm) {
 			this.#fsm.send({ type: 'time_check' });
 		}
@@ -133,6 +146,7 @@ export class LampDurableObject extends DurableObject<Env> {
 
 	// Manual override control stub
 	setManualOverride(action: 'on' | 'off') {
+		console.debug('[LampDurableObject] setManualOverride start', { action });
 		if (this.#fsm) {
 			this.#fsm.send({ type: `manual_override_${action}` });
 		}
