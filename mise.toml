@@ -1,4 +1,3 @@
 [tools]
 "aqua:dagger/dagger" = "latest"
 node = "latest"
-yarn = "latest"
