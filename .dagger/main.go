@@ -29,7 +29,8 @@ func (m *Powerbuddy) BuildEnv(
 		From(nodeBase).
 		WithDirectory("/src", source).
 		WithWorkdir("/src/worker").
-		WithExec([]string{"yarn"}), nil
+		WithExec([]string{"corepack", "install"}).
+		WithExec([]string{"corepack", "yarn"}), nil
 }
 
 // Runs tests
@@ -43,6 +44,6 @@ func (m *Powerbuddy) Test(
 		return "", err
 	}
 	return buildEnv.
-		WithExec([]string{"yarn", "test", "--run"}).
+		WithExec([]string{"corepack", "yarn", "test", "--run"}).
 		Stdout(ctx)
 }
