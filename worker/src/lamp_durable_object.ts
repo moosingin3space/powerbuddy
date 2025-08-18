@@ -45,8 +45,16 @@ export class LampDurableObject extends DurableObject<Env> {
 			});
 
 			ctx.blockConcurrencyWhile(async () => {
-				await this.restoreOrCreate(machine);
-				await this.getWeatherData();
+				try {
+					await this.restoreOrCreate(machine);
+					await this.getWeatherData();
+				} catch (error) {
+					console.error({
+						scope: 'LampDurableObject',
+						message: 'initial asynchronous setup failed',
+						error,
+					});
+				}
 			});
 		} catch (error) {
 			console.error({ message: 'constructor error', scope: 'LampDurableObject', error });
