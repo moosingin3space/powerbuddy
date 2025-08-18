@@ -34,6 +34,11 @@ export async function retrieveSunsetHours(lat: string, lon: string): Promise<Sun
 	});
 	const pointsData = PointsResponseSchema.parse(await pointsResponse.json());
 	const forecastHourlyUrl = pointsData.properties.forecastHourly;
+	console.log({
+		scope: 'weather api',
+		message: 'retrieved hourly forecast URL',
+		forecastHourlyUrl,
+	});
 
 	const forecastResponse = await fetch(forecastHourlyUrl, {
 		headers: {
@@ -48,7 +53,11 @@ export async function retrieveSunsetHours(lat: string, lon: string): Promise<Sun
 		throw new Error('No sunset period found in forecast data');
 	}
 
-	console.log('Fetched sunset period for today', sunsetPeriod);
+	console.log({
+		scope: 'weather api',
+		message: 'Fetched sunset period for today',
+		sunsetPeriod,
+	});
 	const sundownTime = Temporal.Instant.from(sunsetPeriod.endTime);
 
 	return { sundownTime };

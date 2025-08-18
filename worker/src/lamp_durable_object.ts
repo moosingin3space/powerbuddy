@@ -93,7 +93,11 @@ export class LampDurableObject extends DurableObject<Env> {
 	async getWeatherData() {
 		console.debug({ message: 'getWeatherData start', scope: 'LampDurableObject' });
 		if (this.#sunsetHours) {
-			throw new Error('sunsetHours already initialized');
+			console.log({
+				scope: 'LampDurableObject',
+				message: 'sunsetHours already initialized, skipping',
+			});
+			return;
 		}
 
 		const now = Temporal.Now.instant();
