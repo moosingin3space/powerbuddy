@@ -26,13 +26,23 @@ export interface SunsetHours {
 }
 
 export async function retrieveSunsetHours(lat: string, lon: string): Promise<SunsetHours> {
-	const pointsUrl = `https://api.weather.gov/points/${lat},${lon}`;
-	const pointsResponse = await fetch(pointsUrl, {
-		headers: {
-			'User-Agent': USER_AGENT,
-		},
-	});
-	const pointsData = PointsResponseSchema.parse(await pointsResponse.json());
+	let pointsData;
+	try {
+		const pointsUrl = `https://api.weather.gov/points/${lat},${lon}`;
+		const pointsResponse = await fetch(pointsUrl, {
+			headers: {
+				'User-Agent': USER_AGENT,
+			},
+		});
+		pointsData = PointsResponseSchema.parse(await pointsResponse.json());
+	} catch (error) {
+		console.error({
+			scope: 'weather api',
+			message: 'Failed to fetch from points API',
+			error,
+		});
+		throw error;
+	}
 	const forecastHourlyUrl = pointsData.properties.forecastHourly;
 	console.log({
 		scope: 'weather api',
@@ -40,12 +50,22 @@ export async function retrieveSunsetHours(lat: string, lon: string): Promise<Sun
 		forecastHourlyUrl,
 	});
 
-	const forecastResponse = await fetch(forecastHourlyUrl, {
-		headers: {
-			'User-Agent': USER_AGENT,
-		},
-	});
-	const forecastData = ForecastResponseSchema.parse(await forecastResponse.json());
+	let forecastData;
+	try {
+		const forecastResponse = await fetch(forecastHourlyUrl, {
+			headers: {
+				'User-Agent': USER_AGENT,
+			},
+		});
+		forecastData = ForecastResponseSchema.parse(await forecastResponse.json());
+	} catch (error) {
+		console.error({
+			scope: 'weather api',
+			message: 'Failed to fetch from forecast API',
+			error,
+		});
+		throw error;
+	}
 
 	// Find the first period that is nighttime (isDaytime === false) and use its endTime as sundownTime
 	const sunsetPeriod = forecastData.properties.periods.find((period) => !period.isDaytime);
