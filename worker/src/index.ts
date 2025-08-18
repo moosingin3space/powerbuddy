@@ -116,9 +116,16 @@ export default {
 	},
 
 	async scheduled(controller, env, ctx) {
-		const id = env.LAMP.idFromName('living_room');
-		const livingRoomLamp = env.LAMP.get(id);
+		try {
+			const id = env.LAMP.idFromName('living_room');
+			const livingRoomLamp = env.LAMP.get(id);
 
-		ctx.waitUntil(livingRoomLamp.reconcile());
+			// This should probably be invoked with waitUntil,
+			// but in order to ensure the logging is correctly
+			// set up, I'm invoking this in-line.
+			await livingRoomLamp.reconcile();
+		} catch (error) {
+			console.error('[Worker] scheduled evaluation error', error);
+		}
 	},
 } satisfies ExportedHandler<Env>;

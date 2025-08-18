@@ -25,28 +25,32 @@ export class LampDurableObject extends DurableObject<Env> {
 
 	constructor(ctx: DurableObjectState, env: Env) {
 		super(ctx, env);
-		console.debug('[LampDurableObject] constructor start');
+		try {
+			console.debug('[LampDurableObject] constructor start');
 
-		const mt40_api_call = ({ power }: { power: boolean }) => {
-			return api.set_mt40_power(env.MERAKI_API_KEY, env.LAMP_MT40_SERIAL, { power });
-		};
+			const mt40_api_call = ({ power }: { power: boolean }) => {
+				return api.set_mt40_power(env.MERAKI_API_KEY, env.LAMP_MT40_SERIAL, { power });
+			};
 
-		const machine = createLampMachine({
-			meraki_api: mt40_api_call,
-			isAfterSunset: () => {
-				const now = Temporal.Now.instant();
-				if (this.#sunsetHours) {
-					return Temporal.Instant.compare(this.#sunsetHours.forecast.sundownTime, now) > 0;
-				}
-				return false;
-			},
-			isLateNight: () => isLateNight(env),
-		});
+			const machine = createLampMachine({
+				meraki_api: mt40_api_call,
+				isAfterSunset: () => {
+					const now = Temporal.Now.instant();
+					if (this.#sunsetHours) {
+						return Temporal.Instant.compare(this.#sunsetHours.forecast.sundownTime, now) > 0;
+					}
+					return false;
+				},
+				isLateNight: () => isLateNight(env),
+			});
 
-		ctx.blockConcurrencyWhile(async () => {
-			await this.restoreOrCreate(machine);
-			await this.getWeatherData();
-		});
+			ctx.blockConcurrencyWhile(async () => {
+				await this.restoreOrCreate(machine);
+				await this.getWeatherData();
+			});
+		} catch (error) {
+			console.error('[LampDurableObject] constructor error', error);
+		}
 	}
 
 	// Sets up a subscription for this finite state machine,
@@ -138,9 +142,13 @@ export class LampDurableObject extends DurableObject<Env> {
 
 	// Cron-triggered reconciliation stub
 	reconcile() {
-		console.debug('[LampDurableObject] reconcile start');
-		if (this.#fsm) {
-			this.#fsm.send({ type: 'time_check' });
+		try {
+			console.debug('[LampDurableObject] reconcile start');
+			if (this.#fsm) {
+				this.#fsm.send({ type: 'time_check' });
+			}
+		} catch (error) {
+			console.error('[LampDurableObject] reconcile error', error);
 		}
 	}
 
