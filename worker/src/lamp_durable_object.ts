@@ -26,7 +26,7 @@ export class LampDurableObject extends DurableObject<Env> {
 	constructor(ctx: DurableObjectState, env: Env) {
 		super(ctx, env);
 		try {
-			console.debug('[LampDurableObject] constructor start');
+			console.debug({ message: 'constructor start', scope: 'LampDurableObject' });
 
 			const mt40_api_call = ({ power }: { power: boolean }) => {
 				return api.set_mt40_power(env.MERAKI_API_KEY, env.LAMP_MT40_SERIAL, { power });
@@ -49,14 +49,14 @@ export class LampDurableObject extends DurableObject<Env> {
 				await this.getWeatherData();
 			});
 		} catch (error) {
-			console.error('[LampDurableObject] constructor error', error);
+			console.error({ message: 'constructor error', scope: 'LampDurableObject', error });
 		}
 	}
 
 	// Sets up a subscription for this finite state machine,
 	// which will persist the state to storage whenever it changes.
 	subscribeToSnapshot() {
-		console.debug('[LampDurableObject] subscribeToSnapshot start');
+		console.debug({ message: 'subscribeToSnapshot start', scope: 'LampDurableObject' });
 		if (!this.#fsm) {
 			throw new Error('FSM not initialized');
 		}
@@ -67,7 +67,7 @@ export class LampDurableObject extends DurableObject<Env> {
 	}
 
 	async restoreOrCreate(machine: LampMachine) {
-		console.debug('[LampDurableObject] restoreOrCreate start');
+		console.debug({ message: 'restoreOrCreate start', scope: 'LampDurableObject' });
 		if (this.#fsm) {
 			throw new Error('actor already initialized');
 		}
@@ -83,7 +83,7 @@ export class LampDurableObject extends DurableObject<Env> {
 	}
 
 	async getWeatherData() {
-		console.debug('[LampDurableObject] getWeatherData start');
+		console.debug({ message: 'getWeatherData start', scope: 'LampDurableObject' });
 		if (this.#sunsetHours) {
 			throw new Error('sunsetHours already initialized');
 		}
@@ -93,7 +93,7 @@ export class LampDurableObject extends DurableObject<Env> {
 		try {
 			saved = await this.ctx.storage.get<PersistedSunset>('most_recent_sunsets');
 		} catch (error) {
-			console.error('Error fetching persisted sunset data:', error);
+			console.error({ message: 'Error fetching persisted sunset data', scope: 'LampDurableObject', error });
 			saved = null;
 		}
 		let shouldQueryAgain;
@@ -122,7 +122,7 @@ export class LampDurableObject extends DurableObject<Env> {
 	}
 
 	myDeviceDetected(connected: boolean) {
-		console.debug('[LampDurableObject] myDeviceDetected start', { connected });
+		console.debug({ message: 'myDeviceDetected start', scope: 'LampDurableObject', connected });
 		if (this.#fsm) {
 			if (connected) {
 				// We arrived
@@ -134,7 +134,7 @@ export class LampDurableObject extends DurableObject<Env> {
 	}
 
 	doorSignal(door: boolean) {
-		console.debug('[LampDurableObject] doorSignal start', { door });
+		console.debug({ message: 'doorSignal start', scope: 'LampDurableObject', door });
 		if (this.#fsm) {
 			this.#fsm.send({ type: door ? 'door_open' : 'door_close' });
 		}
@@ -143,18 +143,18 @@ export class LampDurableObject extends DurableObject<Env> {
 	// Cron-triggered reconciliation stub
 	reconcile() {
 		try {
-			console.debug('[LampDurableObject] reconcile start');
+			console.debug({ message: 'reconcile start', scope: 'LampDurableObject' });
 			if (this.#fsm) {
 				this.#fsm.send({ type: 'time_check' });
 			}
 		} catch (error) {
-			console.error('[LampDurableObject] reconcile error', error);
+			console.error({ message: 'reconcile error', scope: 'LampDurableObject', error });
 		}
 	}
 
 	// Manual override control stub
 	setManualOverride(action: 'on' | 'off') {
-		console.debug('[LampDurableObject] setManualOverride start', { action });
+		console.debug({ message: 'setManualOverride start', scope: 'LampDurableObject', action });
 		if (this.#fsm) {
 			this.#fsm.send({ type: `manual_override_${action}` });
 		}
