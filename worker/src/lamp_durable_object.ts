@@ -108,6 +108,11 @@ export class LampDurableObject extends DurableObject<Env> {
 			console.error({ message: 'Error fetching persisted sunset data', scope: 'LampDurableObject', error });
 			saved = null;
 		}
+		console.log({
+			scope: 'LampDurableObject',
+			message: 'Retrieved persisted sunset data',
+			saved,
+		});
 		let shouldQueryAgain;
 		if (saved) {
 			// It's too old if the forecast age exceeds 2 hours.
@@ -121,6 +126,10 @@ export class LampDurableObject extends DurableObject<Env> {
 		}
 
 		if (shouldQueryAgain || !saved) {
+			console.log({
+				scope: 'LampDurableObject',
+				message: 'Querying new sunset data',
+			});
 			const result = await nws_api.retrieveSunsetHours(this.env.LATITUDE, this.env.LONGITUDE);
 			const persistedSunset = {
 				queryTime: now,
