@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 const PointsResponseSchema = z.object({
 	properties: z.object({
-		forecastHourly: z.string().url(),
+		forecastHourly: z.url(),
 	}),
 });
 
