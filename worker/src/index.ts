@@ -125,7 +125,11 @@ export default {
 			// set up, I'm invoking this in-line.
 			await livingRoomLamp.reconcile();
 		} catch (error) {
-			console.error('[Worker] scheduled evaluation error', error);
+			console.error({
+				scope: 'Worker',
+				message: 'scheduled evaluation error',
+				error: error,
+			});
 		}
 	},
 } satisfies ExportedHandler<Env>;
