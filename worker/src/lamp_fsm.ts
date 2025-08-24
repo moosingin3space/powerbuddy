@@ -32,6 +32,7 @@ export function createLampMachine({
 		guards: {
 			isAfterSunset: () => isAfterSunset(),
 			isLateNight: () => isLateNight(),
+			isInBetween: () => isAfterSunset() && !isLateNight(),
 		},
 	}).createMachine({
 		context: {},
@@ -49,7 +50,7 @@ export function createLampMachine({
 							},
 						},
 						guard: {
-							type: 'isAfterSunset',
+							type: 'isInBetween',
 						},
 					},
 					manual_override_on: {
@@ -70,7 +71,19 @@ export function createLampMachine({
 							},
 						},
 						guard: {
-							type: 'isAfterSunset',
+							type: 'isInBetween',
+						},
+					},
+					time_check: {
+						target: 'On',
+						actions: {
+							type: 'meraki_api',
+							params: {
+								power: true,
+							},
+						},
+						guard: {
+							type: 'isInBetween',
 						},
 					},
 				},
