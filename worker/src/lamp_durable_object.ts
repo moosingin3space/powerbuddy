@@ -3,7 +3,7 @@ import { createLampMachine } from './lamp_fsm.ts';
 import * as api from './meraki_api.ts';
 import * as nws_api from './weather_api.ts';
 import { DurableObject } from 'cloudflare:workers';
-import { Temporal, Intl } from '@js-temporal/polyfill';
+import { Temporal } from '@js-temporal/polyfill';
 
 function isLateNight(env: Env): boolean {
 	const now = Temporal.Now.instant().toZonedDateTimeISO(env.MY_TIMEZONE);
@@ -13,15 +13,47 @@ function isLateNight(env: Env): boolean {
 
 type LampMachine = ReturnType<typeof createLampMachine>;
 
+interface PersistedSunsetHours {
+	// The string below is an RFC 9557 string.
+	sundownTime: string;
+}
+
 interface PersistedSunset {
+	forecast: PersistedSunsetHours;
+	// The string below is an RFC 9557 string.
+	queryTime: string;
+}
+
+class ParsedSunset {
 	forecast: nws_api.SunsetHours;
 	queryTime: Temporal.Instant;
+
+	constructor(forecast: nws_api.SunsetHours, queryTime: Temporal.Instant) {
+		this.forecast = forecast;
+		this.queryTime = queryTime;
+	}
+
+	static fromPersisted(persisted: PersistedSunset): ParsedSunset {
+		const sunsetHours = {
+			sundownTime: Temporal.Instant.from(persisted.forecast.sundownTime),
+		};
+		return new ParsedSunset(sunsetHours, Temporal.Instant.from(persisted.queryTime));
+	}
+
+	toPersisted(): PersistedSunset {
+		return {
+			forecast: {
+				sundownTime: this.forecast.sundownTime.toString(),
+			},
+			queryTime: this.queryTime.toString(),
+		};
+	}
 }
 
 /** This class implements a lamp controlled with an MT40. */
 export class LampDurableObject extends DurableObject<Env> {
 	#fsm: ActorRefFrom<LampMachine> | null = null;
-	#sunsetHours: PersistedSunset | null = null;
+	#sunsetHours: ParsedSunset | null = null;
 
 	constructor(ctx: DurableObjectState, env: Env) {
 		super(ctx, env);
@@ -104,6 +136,9 @@ export class LampDurableObject extends DurableObject<Env> {
 		let saved;
 		try {
 			saved = await this.ctx.storage.get<PersistedSunset>('most_recent_sunsets');
+			if (saved) {
+				saved = ParsedSunset.fromPersisted(saved);
+			}
 		} catch (error) {
 			console.error({ message: 'Error fetching persisted sunset data', scope: 'LampDurableObject', error });
 			saved = null;
@@ -131,12 +166,9 @@ export class LampDurableObject extends DurableObject<Env> {
 				message: 'Querying new sunset data',
 			});
 			const result = await nws_api.retrieveSunsetHours(this.env.LATITUDE, this.env.LONGITUDE);
-			const persistedSunset = {
-				queryTime: now,
-				forecast: result,
-			};
-			this.ctx.storage.put('most_recent_sunsets', persistedSunset);
-			this.#sunsetHours = persistedSunset;
+			const sunset = new ParsedSunset(result, now);
+			this.ctx.storage.put('most_recent_sunsets', sunset.toPersisted());
+			this.#sunsetHours = sunset;
 		} else {
 			this.#sunsetHours = saved;
 		}
