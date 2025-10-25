@@ -11,7 +11,7 @@
 		"test": "vitest"
 	},
 	"devDependencies": {
-		"@cloudflare/vitest-pool-workers": "^0.8.55",
+		"@cloudflare/vitest-pool-workers": "^0.10.0",
 		"@vitest/runner": "^3.2.4",
 		"@vitest/snapshot": "^3.2.4",
 		"typescript": "^5.5.2",
@@ -24,7 +24,7 @@
 		"zod": "^4.0.5"
 	},
 	"dependenciesMeta": {
-		"@cloudflare/vitest-pool-workers@0.8.46": {
+		"@cloudflare/vitest-pool-workers@^0.10.0": {
 			"unplugged": true
 		},
 		"vitest@3.2.4": {
