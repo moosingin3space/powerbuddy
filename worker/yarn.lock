@@ -2960,9 +2960,9 @@ __metadata:
   linkType: hard
 
 "xstate@npm:^5.20.1":
-  version: 5.23.0
-  resolution: "xstate@npm:5.23.0"
-  checksum: 10c0/f23610aab8700b84fee4477fda28ef4f92adedd3e2816ac85c9f57a1257485a9ea44942e73db6fa11a383e9752635e6c88a62b89d47fd5443e68b2505f0ff438
+  version: 5.32.0
+  resolution: "xstate@npm:5.32.0"
+  checksum: 10c0/bab5f8e2e7911c02113160b571cef69b83977c93aca4b0676a3ba6cb6c6e2a2284d6de6927804b43ad010a65f2aa6a53c8c1cc10aa91c92b8f3ad80c44c95efc
   languageName: node
   linkType: hard
 
